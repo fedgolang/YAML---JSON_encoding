@@ -2,7 +2,6 @@ package encoding
 
 import (
 	"encoding/json"
-	"io"
 	"os"
 
 	"github.com/Yandex-Practicum/final-project-encoding-go/models"
@@ -31,24 +30,20 @@ type MyEncoder interface {
 // Encoding перекодирует файл из JSON в YAML
 func (j *JSONData) Encoding() error {
 	// ниже реализуйте метод
-	var obj interface{}
-	JSONdata, err := os.Open("jsonInput.json")
+	jsonFile, err := os.ReadFile(j.FileInput)
 	if err != nil {
 		return err
 	}
-	data, err := io.ReadAll(JSONdata)
+
+	err = json.Unmarshal(jsonFile, &j.DockerCompose)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(data, &obj)
+	out, err := yaml.Marshal(&j.DockerCompose)
 	if err != nil {
 		return err
 	}
-	out, err := yaml.Marshal(obj)
-	if err != nil {
-		return err
-	}
-	yamlFile, err := os.Create("yamlOutput.yml")
+	yamlFile, err := os.Create(j.FileOutput)
 	if err != nil {
 		return err
 	}
@@ -63,29 +58,24 @@ func (j *JSONData) Encoding() error {
 // Encoding перекодирует файл из YAML в JSON
 func (y *YAMLData) Encoding() error {
 	// Ниже реализуйте метод
-	var obj interface{}
-	YAMLdata, err := os.Open("yamlInput.yml")
+	YAMLdata, err := os.ReadFile(y.FileInput)
 	if err != nil {
 		return err
 	}
-	data, err := io.ReadAll(YAMLdata)
+	err = yaml.Unmarshal(YAMLdata, &y.DockerCompose)
 	if err != nil {
 		return err
 	}
-	err = yaml.Unmarshal(data, &obj)
+	out, err := json.Marshal(&y.DockerCompose)
 	if err != nil {
 		return err
 	}
-	out, err := json.Marshal(obj)
+	JSONfile, err := os.Create(y.FileOutput)
 	if err != nil {
 		return err
 	}
-	JSONFile, err := os.Create("jsonOutput.json")
-	if err != nil {
-		return err
-	}
-	defer JSONFile.Close()
-	_, err = JSONFile.Write(out)
+	defer JSONfile.Close()
+	_, err = JSONfile.Write(out)
 	if err != nil {
 		return err
 	}
